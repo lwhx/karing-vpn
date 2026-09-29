@@ -441,8 +441,10 @@ class GroupHelper {
           GroupItemOptions(
             stringPickerOptions: GroupItemStringPickerOptions(
               name: tcontext.SettingsScreen.tunStack,
-              selected: settingConfig.tun.stack,
-              strings: ["mixed", "system", "gvisor"],
+              selected: Platform.isIOS ? "gvisor" : settingConfig.tun.stack,
+              strings: Platform.isIOS
+                  ? ["gvisor"]
+                  : ["mixed", "system", "gvisor"],
               onPicker: !tunMode
                   ? null
                   : (String? selected) async {

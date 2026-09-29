@@ -685,7 +685,7 @@ class SettingConfigItemTUN {
     if (Platform.isWindows) {
       return "gvisor";
     }
-    return "mixed";
+    return "gvisor";
   }
 
   static bool getAppendHttp() {

@@ -19,6 +19,7 @@ import 'package:karing/app/utils/icon_utils.dart';
 import 'package:karing/app/utils/package_manager_android.dart';
 import 'package:karing/app/utils/path_utils.dart';
 import 'package:karing/app/utils/platform_utils.dart';
+import 'package:karing/app/utils/process_utils_macos.dart';
 import 'package:karing/app/utils/proxy_conf_utils.dart';
 import 'package:karing/app/utils/singbox_config_builder.dart';
 import 'package:karing/app/utils/websocket.dart';
@@ -335,8 +336,9 @@ class _NetConnectionsScreenState
   final List<NetConnectionStateOut> _connectionOutList = [];
 
   Websocket? _websocket;
-  final List<PackageInfoEx> _applicationInfoList = [];
-  final Map<String, Future<Image?>> _packageIconFutures = {};
+  final List<PackageInfoEx> _androidPackageInfoList = [];
+  final List<MacosProcessInfo> _macosProcessInfoList = [];
+  final Map<String, Future<Image?>> _iconFutures = {};
   bool _pause = false;
   ConnectionsSortType _sortType = ConnectionsSortType.none;
   bool _showConnectionIn = true;
@@ -359,31 +361,44 @@ class _NetConnectionsScreenState
 
   Future<void> getInstalledPackages() async {
     if (Platform.isAndroid) {
-      _packageIconFutures.clear();
-      _applicationInfoList.clear();
-      _applicationInfoList.addAll(
+      _iconFutures.clear();
+      _androidPackageInfoList.clear();
+      _androidPackageInfoList.addAll(
         await PackageManagerAndroid.getInstalledPackages(),
       );
       setState(() {});
+    } else if (Platform.isMacOS) {
+      _macosProcessInfoList.clear();
+      _macosProcessInfoList.addAll(await ProcessUtilsMacos.getProcessList());
     }
   }
 
-  Future<Image?> getInstalledPackageIcon(
+  Future<Image?> getInstalledPackageOrProcessIcon(
     NetConnectionStateIn connection,
   ) async {
     if (Platform.isAndroid) {
-      return _packageIconFutures.putIfAbsent(
+      return _iconFutures.putIfAbsent(
         connection.package,
         () => PackageManagerAndroid.getInstalledPackageIcon(
-          _applicationInfoList,
+          _androidPackageInfoList,
           connection.package,
         ),
       );
     } else if (Platform.isWindows) {
       if (connection.process.isNotEmpty) {
-        return _packageIconFutures.putIfAbsent(
+        return _iconFutures.putIfAbsent(
           connection.process,
           () => IconUtils.getProcessIcon(connection.process),
+        );
+      }
+    } else if (Platform.isMacOS) {
+      if (connection.process.isNotEmpty) {
+        return _iconFutures.putIfAbsent(
+          connection.process,
+          () => ProcessUtilsMacos.getProcessIcon(
+            _macosProcessInfoList,
+            connection.process,
+          ),
         );
       }
     }
@@ -531,10 +546,10 @@ class _NetConnectionsScreenState
 
   void ajustProcess() {
     if (Platform.isAndroid) {
-      if (_applicationInfoList.isNotEmpty) {
+      if (_androidPackageInfoList.isNotEmpty) {
         _states.forEach((key, value) {
           if (value.process.isEmpty && value.package.isNotEmpty) {
-            PackageInfoEx? info = _applicationInfoList.firstWhereOrNull(
+            PackageInfoEx? info = _androidPackageInfoList.firstWhereOrNull(
               (element) => element.info.packageName == value.package,
             );
             if (info != null) {
@@ -934,7 +949,9 @@ class _NetConnectionsScreenState
                           Row(
                             children: [
                               FutureBuilder(
-                                future: getInstalledPackageIcon(current),
+                                future: getInstalledPackageOrProcessIcon(
+                                  current,
+                                ),
                                 builder:
                                     (
                                       BuildContext context,
