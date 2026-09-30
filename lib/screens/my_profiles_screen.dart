@@ -1499,14 +1499,22 @@ class MyProfilesScreenState extends LasyRenderingState<MyProfilesScreen> {
       case "anytls":
         sbOptions.anytls = SingboxOutboundAnyTlsOptions();
         break;
-      case "mieru":
-        sbOptions.mieru = SingboxOutboundMieruOptions();
-        break;
+
       case "naive":
         sbOptions.naive = SingboxOutboundNaiveOptions();
         break;
       case "snell":
         sbOptions.snell = SingboxOutboundSnellOptions();
+        break;
+      case "tailscale":
+        sbOptions.tailscale = SingboxOutboundTailscaleOptions();
+        break;
+      case "openvpn-client":
+        sbOptions.openvpn = SingboxOutboundOpenvpnOptions();
+        break;
+      //openconnect
+      case "mieru":
+        sbOptions.mieru = SingboxOutboundMieruOptions();
         break;
       case "sudoku":
         sbOptions.sudoku = SingboxOutboundSudokuOptions();
@@ -1517,12 +1525,6 @@ class MyProfilesScreenState extends LasyRenderingState<MyProfilesScreen> {
       case "masque":
         sbOptions.masque = SingboxOutboundMasqueOptions();
         break;
-      /* todo
-  tailscale 
-  cloudflared 
-  openconnect 
-  openvpn-client 
-  */
       default:
         return;
     }
@@ -1653,11 +1655,7 @@ class MyProfilesScreenState extends LasyRenderingState<MyProfilesScreen> {
                 sbOptions.server = sbOptions.anytls!.server ?? "";
                 sbOptions.server_port = sbOptions.anytls!.server_port ?? 0;
                 break;
-              case "mieru":
-                ret = sbOptions.mieru!.getRequired();
-                sbOptions.server = sbOptions.mieru!.server ?? "";
-                sbOptions.server_port = sbOptions.mieru!.server_port ?? 0;
-                break;
+
               case "naive":
                 ret = sbOptions.naive!.getRequired();
                 sbOptions.server = sbOptions.naive!.server ?? "";
@@ -1667,6 +1665,22 @@ class MyProfilesScreenState extends LasyRenderingState<MyProfilesScreen> {
                 ret = sbOptions.snell!.getRequired();
                 sbOptions.server = sbOptions.snell!.server ?? "";
                 sbOptions.server_port = sbOptions.snell!.server_port ?? 0;
+                break;
+              case "tailscale":
+                ret = sbOptions.tailscale!.getRequired();
+                sbOptions.server = sbOptions.tailscale!.server ?? "";
+                sbOptions.server_port = sbOptions.tailscale!.server_port ?? 0;
+                break;
+              case "openvpn-client":
+                ret = sbOptions.openvpn!.getRequired();
+                sbOptions.server = sbOptions.openvpn!.server ?? "";
+                sbOptions.server_port = sbOptions.openvpn!.server_port ?? 0;
+                break;
+              //openconnect
+              case "mieru":
+                ret = sbOptions.mieru!.getRequired();
+                sbOptions.server = sbOptions.mieru!.server ?? "";
+                sbOptions.server_port = sbOptions.mieru!.server_port ?? 0;
                 break;
               case "sudoku":
                 ret = sbOptions.sudoku!.getRequired();
@@ -1683,12 +1697,6 @@ class MyProfilesScreenState extends LasyRenderingState<MyProfilesScreen> {
                 sbOptions.server = sbOptions.masque!.server ?? "";
                 sbOptions.server_port = sbOptions.masque!.server_port ?? 0;
                 break;
-              /* todo
-  tailscale 
-  cloudflared 
-  openconnect 
-  openvpn-client 
-  */
             }
             if (ret != null) {
               DialogUtils.showAlertDialog(
@@ -1796,6 +1804,7 @@ class MyProfilesScreenState extends LasyRenderingState<MyProfilesScreen> {
       {},
       SingboxExportType.karing,
     );
+    config.endpoints = SingboxConfigBuilder.endpoints(config.outbounds);
 
     var sitecodesHashCode = await RulesetCodesUtils.siteCodesHashCode();
     var ipcodesHashCode = await RulesetCodesUtils.ipCodesHashCode();
